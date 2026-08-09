@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <fstream>
 using namespace std;
 
 class Student
@@ -29,11 +30,56 @@ public:
     }
 };
 
+// Save students to file
+void saveStudents(Student s[], int studentCount)
+{
+    ofstream file("students.txt");
+
+    if (!file)
+    {
+        cout << "Error: Could not open students.txt for saving!\n";
+        return;
+    }
+
+    for (int i = 0; i < studentCount; i++)
+    {
+        file << s[i].name << " "
+             << s[i].roll << " "
+             << s[i].marks << endl;
+    }
+
+    file.close();
+}
+
+// Load students from file
+void loadStudents(Student s[], int &studentCount)
+{
+    ifstream file("students.txt");
+
+    if (!file)
+    {
+        return;
+    }
+
+    while (studentCount < 100 &&
+           file >> s[studentCount].name
+                >> s[studentCount].roll
+                >> s[studentCount].marks)
+    {
+        studentCount++;
+    }
+
+    file.close();
+}
+
 int main()
 {
     Student s[100];
     int studentCount = 0;
     int choice;
+
+    // Load saved students when program starts
+    loadStudents(s, studentCount);
 
     do
     {
@@ -42,15 +88,25 @@ int main()
         cout << "2. Show Students\n";
         cout << "3. Search Student\n";
         cout << "4. Delete Student\n";
-        cout << "5. Exit\n";
+        cout << "5. Update Student\n";
+        cout << "6. Exit\n";
         cout << "Enter your choice: ";
         cin >> choice;
 
         switch (choice)
         {
         case 1:
+            if (studentCount >= 100)
+            {
+                cout << "Student limit reached!\n";
+                break;
+            }
+
             s[studentCount].addStudent();
             studentCount++;
+
+            saveStudents(s, studentCount);
+
             cout << "Student Added Successfully!\n";
             break;
 
@@ -88,7 +144,9 @@ int main()
             }
 
             if (!found)
+            {
                 cout << "Student Not Found!\n";
+            }
 
             break;
         }
@@ -111,19 +169,58 @@ int main()
                     }
 
                     studentCount--;
-                    found = true;
+
+                    saveStudents(s, studentCount);
+
                     cout << "Student Deleted Successfully!\n";
+                    found = true;
                     break;
                 }
             }
 
             if (!found)
+            {
                 cout << "Student Not Found!\n";
+            }
 
             break;
         }
 
         case 5:
+        {
+            int updateRoll;
+            bool found = false;
+
+            cout << "Enter Roll Number to Update: ";
+            cin >> updateRoll;
+
+            for (int i = 0; i < studentCount; i++)
+            {
+                if (s[i].roll == updateRoll)
+                {
+                    cout << "Enter New Student Name: ";
+                    cin >> s[i].name;
+
+                    cout << "Enter New Marks: ";
+                    cin >> s[i].marks;
+
+                    saveStudents(s, studentCount);
+
+                    cout << "Student Updated Successfully!\n";
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                cout << "Student Not Found!\n";
+            }
+
+            break;
+        }
+
+        case 6:
             cout << "Exiting Program...\n";
             break;
 
@@ -131,7 +228,7 @@ int main()
             cout << "Invalid Choice!\n";
         }
 
-    } while (choice != 5);
+    } while (choice != 6);
 
     return 0;
 }
